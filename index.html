@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quality Data Schema | End-to-End Traceability</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+:root {
+    --bg-dark: #0f1419;
+    --bg-card: #1a1f26;
+    --bg-elevated: #242b33;
+    --accent-blue: #1d9bf0;
+    --accent-green: #00ba7c;
+    --accent-orange: #ff7a00;
+    --accent-purple: #7856ff;
+    --accent-red: #f4212e;
+    --accent-yellow: #ffd400;
+    --text-primary: #e7e9ea;
+    --text-secondary: #71767b;
+    --border: #2f3336;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    line-height: 1.6;
+    padding: 40px;
+}
+
+.container { max-width: 1400px; margin: 0 auto; }
+
+header {
+    text-align: center;
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+}
+
+h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.subtitle { color: var(--text-secondary); font-size: 16px; }
+
+.phase-nav {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+}
+
+.phase-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 20px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+}
+
+.phase-btn:hover, .phase-btn.active { background: var(--accent-blue); color: white; }
+.phase-btn[data-phase="create"] { --phase-color: var(--accent-purple); }
+.phase-btn[data-phase="make"] { --phase-color: var(--accent-green); }
+.phase-btn[data-phase="move"] { --phase-color: var(--accent-orange); }
+.phase-btn[data-phase="marketplace"] { --phase-color: var(--accent-red); }
+.phase-btn[data-phase="reference"] { --phase-color: var(--accent-yellow); }
+.phase-btn:hover, .phase-btn.active { background: var(--phase-color); }
+
+.legend {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin: 24px 0;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.legend-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.legend-icon.pk { background: var(--accent-yellow); color: #000; }
+.legend-icon.fk { background: var(--accent-blue); color: #fff; }
+.legend-icon.req { background: var(--accent-red); color: #fff; }
+.legend-icon.idx { background: var(--accent-green); color: #fff; }
+
+.section {
+    margin-bottom: 48px;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.phase-tag {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.phase-tag.create { background: var(--accent-purple); }
+.phase-tag.make { background: var(--accent-green); }
+.phase-tag.move { background: var(--accent-orange); }
+.phase-tag.marketplace { background: var(--accent-red); }
+.phase-tag.reference { background: var(--accent-yellow); color: #000; }
+
+.section h2 {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.tables-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 24px;
+}
+
+.table-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.table-header {
+    padding: 16px 20px;
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.table-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--accent-blue);
+}
+
+.table-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+th {
+    text-align: left;
+    padding: 10px 16px;
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+}
+
+td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+}
+
+tr:last-child td { border-bottom: none; }
+
+.field-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.badge.pk { background: var(--accent-yellow); color: #000; }
+.badge.fk { background: var(--accent-blue); color: #fff; }
+.badge.req { background: rgba(244, 33, 46, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
+.badge.idx { background: var(--accent-green); color: #fff; }
+
+.data-type {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--accent-green);
+}
+
+.field-desc {
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.fk-ref {
+    font-size: 11px;
+    color: var(--accent-blue);
+    margin-top: 2px;
+}
+
+.erd-section {
+    margin-top: 48px;
+    padding: 32px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+
+.erd-section h2 {
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.erd-diagram {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
+}
+
+.erd-row {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.erd-entity {
+    background: var(--bg-elevated);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 20px;
+    text-align: center;
+    min-width: 140px;
+}
+
+.erd-entity.core { border-color: var(--accent-blue); }
+.erd-entity.create { border-color: var(--accent-purple); }
+.erd-entity.make { border-color: var(--accent-green); }
+.erd-entity.move { border-color: var(--accent-orange); }
+.erd-entity.marketplace { border-color: var(--accent-red); }
+
+.erd-entity-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.erd-arrow {
+    color: var(--text-secondary);
+    font-size: 20px;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--accent-blue);
+}
+
+.stat-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+@media (max-width: 768px) {
+    body { padding: 20px; }
+    .tables-grid { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+.hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Quality Data Schema</h1>
+            <p class="subtitle">End-to-End Traceability & Accountability for Product Quality</p>
+            
+            <nav class="phase-nav">
+                <button class="phase-btn active" data-phase="all">All Tables</button>
+                <button class="phase-btn" data-phase="core">Core Entities</button>
+                <button class="phase-btn" data-phase="create">Create</button>
+                <button class="phase-btn" data-phase="make">Make</button>
+                <button class="phase-btn" data-phase="move">Move</button>
+                <button class="phase-btn" data-phase="marketplace">Marketplace</button>
+                <button class="phase-btn" data-phase="reference">Reference</button>
+            </nav>
+            
+            <div class="legend">
+                <div class="legend-item"><span class="legend-icon pk">PK</span> Primary Key</div>
+                <div class="legend-item"><span class="legend-icon fk">FK</span> Foreign Key</div>
+                <div class="legend-item"><span class="legend-icon req">*</span> Required</div>
+                <div class="legend-item"><span class="legend-icon idx">IX</span> Indexed</div>
+            </div>
+        </header>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value">12</div>
+                <div class="stat-label">Total Tables</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">4</div>
+                <div class="stat-label">Quality Phases</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">95+</div>
+                <div class="stat-label">Data Fields</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">15</div>
+                <div class="stat-label">Relationships</div>
+            </div>
+        </div>
+
+        <!-- CORE ENTITIES -->
+        <section class="section" data-phase="core">
+            <div class="section-header">
+                <span class="phase-tag create">Core</span>
+                <h2>Core Entity Tables</h2>
+            </div>
+            <div class="tables-grid">
+                <!-- Products Table -->
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-name">Products</span>
+                        <span class="table-desc">Master product catalog</span>
+                    </div>
+                    <table>
+                        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="field-name"><span class="badge pk">PK</span> product_id</span></td><td class="data-type">INT AUTO_INCREMENT</td><td class="field-desc">Unique product identifier</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span><span class="badge idx">IX</span> style_number</span></td><td class="data-type">VARCHAR(10)</td><td class="field-desc">Style code (e.g., CQ8815, HQ6472)</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> colorway_code</span></td><td class="data-type">VARCHAR(5)</td><td class="field-desc">Color code (e.g., 001, 160)</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> model_name</span></td><td class="data-type">VARCHAR(100)</td><td class="field-desc">Product name (e.g., Air Jordan 1 Mid)</td></tr>
+                            <tr><td><span class="field-name"><span class="badge fk">FK</span> category_id</span></td><td class="data-type">INT</td><td class="field-desc">Product category<div class="fk-ref">→ Categories.category_id</div></td></tr>
+                            <tr><td><span class="field-name"><span class="badge fk">FK</span> subcategory_id</span></td><td class="data-type">INT</td><td class="field-desc">Product subcategory<div class="fk-ref">→ Subcategories.subcategory_id</div></td></tr>
+                            <tr><td><span class="field-name">consumer_construct</span></td><td class="data-type">VARCHAR(50)</td><td class="field-desc">Consumer construct type</td></tr>
+                            <tr><td><span class="field-name">field_of_play</span></td><td class="data-type">VARCHAR(50)</td><td class="field-desc">Sport/lifestyle category</td></tr>
+                            <tr><td><span class="field-name">created_at</span></td><td class="data-type">TIMESTAMP</td><td class="field-desc">Record creation date</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Factories Table -->
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-name">Factories</span>
+                        <span class="table-desc">T1 and T2 manufacturing facilities</span>
+                    </div>
+                    <table>
+                        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="field-name"><span class="badge pk">PK</span> factory_id</span></td><td class="data-type">INT AUTO_INCREMENT</td><td class="field-desc">Unique factory identifier</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span><span class="badge idx">IX</span> factory_code</span></td><td class="data-type">VARCHAR(10)</td><td class="field-desc">Factory code (e.g., VH, XB, C5_JJ)</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> factory_name</span></td><td class="data-type">VARCHAR(100)</td><td class="field-desc">Factory name</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> tier</span></td><td class="data-type">ENUM('T1','T2')</td><td class="field-desc">Tier 1 or Tier 2</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> country_code</span></td><td class="data-type">VARCHAR(3)</td><td class="field-desc">Country (VN, CN, ID, etc.)</td></tr>
+                            <tr><td><span class="field-name">plant_code</span></td><td class="data-type">VARCHAR(10)</td><td class="field-desc">Plant identifier (e.g., 1083)</td></tr>
+                            <tr><td><span class="field-name">is_active</span></td><td class="data-type">BOOLEAN</td><td class="field-desc">Active status</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Purchase Orders Table -->
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-name">PurchaseOrders</span>
+                        <span class="table-desc">Production orders tracking</span>
+                    </div>
+                    <table>
+                        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="field-name"><span class="badge pk">PK</span> po_id</span></td><td class="data-type">INT AUTO_INCREMENT</td><td class="field-desc">Internal PO identifier</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span><span class="badge idx">IX</span> po_number</span></td><td class="data-type">VARCHAR(20)</td><td class="field-desc">SAP PO number</td></tr>
+                            <tr><td><span class="field-name">po_item</span></td><td class="data-type">INT</td><td class="field-desc">PO line item number</td></tr>
+                            <tr><td><span class="field-name"><span class="badge fk">FK</span> product_id</span></td><td class="data-type">INT</td><td class="field-desc">Product reference<div class="fk-ref">→ Products.product_id</div></td></tr>
+                            <tr><td><span class="field-name"><span class="badge fk">FK</span> factory_id</span></td><td class="data-type">INT</td><td class="field-desc">Manufacturing factory<div class="fk-ref">→ Factories.factory_id</div></td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> season_code</span></td><td class="data-type">ENUM('SP','SU','FA','HO')</td><td class="field-desc">Season code</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> season_year</span></td><td class="data-type">YEAR</td><td class="field-desc">Season year (e.g., 2025)</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> order_qty</span></td><td class="data-type">INT</td><td class="field-desc">Total order quantity</td></tr>
+                            <tr><td><span class="field-name">lot_number</span></td><td class="data-type">VARCHAR(20)</td><td class="field-desc">Lot identifier</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Seasons Table -->
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-name">Seasons</span>
+                        <span class="table-desc">Season reference data</span>
+                    </div>
+                    <table>
+                        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="field-name"><span class="badge pk">PK</span> season_id</span></td><td class="data-type">INT AUTO_INCREMENT</td><td class="field-desc">Unique season ID</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> season_code</span></td><td class="data-type">ENUM('SP','SU','FA','HO')</td><td class="field-desc">SP, SU, FA, HO</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> season_year</span></td><td class="data-type">YEAR</td><td class="field-desc">Year (2024, 2025, etc.)</td></tr>
+                            <tr><td><span class="field-name">season_name</span></td><td class="data-type">VARCHAR(20)</td><td class="field-desc">Full name (Spring 2025)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- CREATE PHASE -->
+        <section class="section" data-phase="create">
+            <div class="section-header">
+                <span class="phase-tag create">Create</span>
+                <h2>RAMP Risk Assessment</h2>
+            </div>
+            <div class="tables-grid">
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-name">RAMP_Assessments</span>
+                        <span class="table-desc">Risk Assessment for Materials & Products</span>
+                    </div>
+                    <table>
+                        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="field-name"><span class="badge pk">PK</span> ramp_id</span></td><td class="data-type">INT AUTO_INCREMENT</td><td class="field-desc">Unique RAMP assessment ID</td></tr>
+                            <tr><td><span class="field-name"><span class="badge fk">FK</span> product_id</span></td><td class="data-type">INT</td><td class="field-desc">Product assessed<div class="fk-ref">→ Products.product_id</div></td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> assessment_date</span></td><td class="data-type">DATE</td><td class="field-desc">Date of assessment</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> risk_level</span></td><td class="data-type">ENUM('HIGH','MODERATE','LOW')</td><td class="field-desc">Overall risk classification</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> r_value</span></td><td class="data-type">ENUM('REVOLUTION','RENEW','REFRESH')</td><td class="field-desc">Development type</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> risk_owner</span></td><td class="data-type">ENUM('PRE','GLAM','PCC')</td><td class="field-desc">Risk ownership team</td></tr>
+                            <tr><td><span class="field-name">development_scenario</span></td><td class="data-type">VARCHAR(100)</td><td class="field-desc">Chassis Create, New NXT Innovation, etc.</td></tr>
+                            <tr><td><span class="field-name">product_criteria_notes</span></td><td class="data-type">TEXT</td><td class="field-desc">Product-specific criteria</td></tr>
+                            <tr><td><span class="field-name">material_criteria_notes</span></td><td class="data-type">TEXT</td><td class="field-desc">Material-specific criteria</td></tr>
+                            <tr><td><span class="field-name">prioritization_score</span></td><td class="data-type">INT</td><td class="field-desc">Priority ranking score</td></tr>
+                            <tr><td><span class="field-name">assessor_name</span></td><td class="data-type">VARCHAR(100)</td><td class="field-desc">Person who conducted assessment</td></tr>
+                            <tr><td><span class="field-name">approval_status</span></td><td class="data-type">ENUM('PENDING','APPROVED','REJECTED')</td><td class="field-desc">Approval state</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- MAKE PHASE -->
+        <section class="section" data-phase="make">
+            <div class="section-header">
+                <span class="phase-tag make">Make</span>
+                <h2>T1 Production Audits (AQL/FTT/HFPA)</h2>
+            </div>
+            <div class="tables-grid">
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-name">ProductionAudits</span>
+                        <span class="table-desc">T1 Factory inspection results</span>
+                    </div>
+                    <table>
+                        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="field-name"><span class="badge pk">PK</span> audit_id</span></td><td class="data-type">INT AUTO_INCREMENT</td><td class="field-desc">Unique audit identifier</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span><span class="badge idx">IX</span> internal_audit_id</span></td><td class="data-type">VARCHAR(20)</td><td class="field-desc">Factory's internal audit ID</td></tr>
+                            <tr><td><span class="field-name"><span class="badge fk">FK</span> po_id</span></td><td class="data-type">INT</td><td class="field-desc">Purchase order reference<div class="fk-ref">→ PurchaseOrders.po_id</div></td></tr>
+                            <tr><td><span class="field-name"><span class="badge fk">FK</span> factory_id</span></td><td class="data-type">INT</td><td class="field-desc">Factory performing audit<div class="fk-ref">→ Factories.factory_id</div></td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> audit_type</span></td><td class="data-type">ENUM('AQL','FTT','HFPA')</td><td class="field-desc">Type of audit</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> audit_date</span></td><td class="data-type">DATE</td><td class="field-desc">Date of audit</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> auditor_name</span></td><td class="data-type">VARCHAR(100)</td><td class="field-desc">Certified auditor name</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> lot_qty</span></td><td class="data-type">INT</td><td class="field-desc">Total lot quantity</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> sample_size</span></td><td class="data-type">INT</td><td class="field-desc">Number of units sampled</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> defective_qty</span></td><td class="data-type">INT</td><td class="field-desc">Total defective units found</td></tr>
+                            <tr><td><span class="field-name">defect_rate</span></td><td class="data-type">DECIMAL(5,2)</td><td class="field-desc">Calculated defect rate %</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> pass_fail</span></td><td class="data-type">ENUM('PASS','FAIL')</td><td class="field-desc">Audit result</td></tr>
+                            <tr><td><span class="field-name">metal_detection</span></td><td class="data-type">ENUM('PASS','FAIL')</td><td class="field-desc">Metal detection result</td></tr>
+                            <tr><td><span class="field-name">time_slot</span></td><td class="data-type">VARCHAR(20)</td><td class="field-desc">Audit time window (HFPA)</td></tr>
+                            <tr><td><span class="field-name">audit_duration_sec</span></td><td class="data-type">INT</td><td class="field-desc">Time taken (HFPA target: 60-90s)</td></tr>
+                            <tr><td><span class="field-name">notes</span></td><td class="data-type">TEXT</td><td class="field-desc">Additional observations</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-name">AuditDefects</span>
+                        <span class="table-desc">Defects found during production audits</span>
+                    </div>
+                    <table>
+                        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="field-name"><span class="badge pk">PK</span> audit_defect_id</span></td><td class="data-type">INT AUTO_INCREMENT</td><td class="field-desc">Unique record ID</td></tr>
+                            <tr><td><span class="field-name"><span class="badge fk">FK</span><span class="badge req">*</span> audit_id</span></td><td class="data-type">INT</td><td class="field-desc">Parent audit<div class="fk-ref">→ ProductionAudits.audit_id</div></td></tr>
+                            <tr><td><span class="field-name"><span class="badge fk">FK</span><span class="badge req">*</span> defect_code</span></td><td class="data-type">VARCHAR(10)</td><td class="field-desc">Defect type code<div class="fk-ref">→ DefectTypes.defect_code</div></td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> defective_count</span></td><td class="data-type">INT</td><td class="field-desc">Number of units with this defect</td></tr>
+                            <tr><td><span class="field-name">severity</span></td><td class="data-type">ENUM('CRITICAL','MAJOR','MINOR')</td><td class="field-desc">Defect severity level</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- MOVE PHASE -->
+        <section class="section" data-phase="move">
+            <div class="section-header">
+                <span class="phase-tag move">Move</span>
+                <h2>Distribution Center Audits</h2>
+            </div>
+            <div class="tables-grid">
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-name">DC_Audits</span>
+                        <span class="table-desc">Nike Distribution Center audit results</span>
+                    </div>
+                    <table>
+                        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="field-name"><span class="badge pk">PK</span> dc_audit_id</span></td><td class="data-type">INT AUTO_INCREMENT</td><td class="field-desc">Unique DC audit ID</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span><span class="badge idx">IX</span> plant_code</span></td><td class="data-type">VARCHAR(10)</td><td class="field-desc">DC plant code (e.g., 1083)</td></tr>
+                            <tr><td><span class="field-name"><span class="badge fk">FK</span> po_id</span></td><td class="data-type">INT</td><td class="field-desc">Purchase order<div class="fk-ref">→ PurchaseOrders.po_id</div></td></tr>
+                            <tr><td><span class="field-name"><span class="badge fk">FK</span> factory_id</span></td><td class="data-type">INT</td><td class="field-desc">Origin factory<div class="fk-ref">→ Factories.factory_id</div></td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> audit_date</span></td><td class="data-type">DATE</td><td class="field-desc">Date of DC audit</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> received_qty</span></td><td class="data-type">INT</td><td class="field-desc">Quantity received (Rcvd Qty/ppk)</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> audit_qty</span></td><td class="data-type">INT</td><td class="field-desc">Quantity audited</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> pass_fail</span></td><td class="data-type">ENUM('P','F')</td><td class="field-desc">Pass/Fail result</td></tr>
+                            <tr><td><span class="field-name">total_defects</span></td><td class="data-type">INT</td><td class="field-desc">Sum of all defects found</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-name">DC_AuditDefects</span>
+                        <span class="table-desc">Defects recorded in DC audits (by code 1-24)</span>
+                    </div>
+                    <table>
+                        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="field-name"><span class="badge pk">PK</span> dc_defect_id</span></td><td class="data-type">INT AUTO_INCREMENT</td><td class="field-desc">Unique record ID</td></tr>
+                            <tr><td><span class="field-name"><span class="badge fk">FK</span><span class="badge req">*</span> dc_audit_id</span></td><td class="data-type">INT</td><td class="field-desc">Parent DC audit<div class="fk-ref">→ DC_Audits.dc_audit_id</div></td></tr>
+                            <tr><td><span class="field-name"><span class="badge fk">FK</span><span class="badge req">*</span> defect_code</span></td><td class="data-type">VARCHAR(10)</td><td class="field-desc">Defect type (1-24)<div class="fk-ref">→ DefectTypes.defect_code</div></td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> defect_count</span></td><td class="data-type">INT</td><td class="field-desc">Quantity of this defect</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- MARKETPLACE PHASE -->
+        <section class="section" data-phase="marketplace">
+            <div class="section-header">
+                <span class="phase-tag marketplace">Marketplace</span>
+                <h2>Issue Management</h2>
+            </div>
+            <div class="tables-grid">
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-name">Issues</span>
+                        <span class="table-desc">Quality issues from Geo/Marketplace</span>
+                    </div>
+                    <table>
+                        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="field-name"><span class="badge pk">PK</span> issue_id</span></td><td class="data-type">INT AUTO_INCREMENT</td><td class="field-desc">Unique issue identifier</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span><span class="badge idx">IX</span> issue_name</span></td><td class="data-type">VARCHAR(200)</td><td class="field-desc">PACK/TEAM + PRODUCT TYPE + ISSUE</td></tr>
+                            <tr><td><span class="field-name"><span class="badge fk">FK</span> product_id</span></td><td class="data-type">INT</td><td class="field-desc">Affected product<div class="fk-ref">→ Products.product_id</div></td></tr>
+                            <tr><td><span class="field-name"><span class="badge fk">FK</span> po_id</span></td><td class="data-type">INT</td><td class="field-desc">Related PO<div class="fk-ref">→ PurchaseOrders.po_id</div></td></tr>
+                            <tr><td><span class="field-name"><span class="badge fk">FK</span> factory_id</span></td><td class="data-type">INT</td><td class="field-desc">T1 Factory<div class="fk-ref">→ Factories.factory_id</div></td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> issue_type</span></td><td class="data-type">VARCHAR(50)</td><td class="field-desc">Primary issue classification</td></tr>
+                            <tr><td><span class="field-name">secondary_issue_type</span></td><td class="data-type">VARCHAR(50)</td><td class="field-desc">Secondary classification</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> issue_description</span></td><td class="data-type">TEXT</td><td class="field-desc">Detailed description</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> location_found</span></td><td class="data-type">VARCHAR(100)</td><td class="field-desc">Where issue was discovered</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> product_location</span></td><td class="data-type">VARCHAR(100)</td><td class="field-desc">Current product location</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> defective_qty</span></td><td class="data-type">INT</td><td class="field-desc">Quantity affected</td></tr>
+                            <tr><td><span class="field-name">total_order_qty</span></td><td class="data-type">INT</td><td class="field-desc">Total order quantity</td></tr>
+                            <tr><td><span class="field-name">sizes_affected</span></td><td class="data-type">VARCHAR(100)</td><td class="field-desc">Impacted sizes</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> arrived_defective</span></td><td class="data-type">BOOLEAN</td><td class="field-desc">Did product arrive defective?</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> replacement_needed</span></td><td class="data-type">BOOLEAN</td><td class="field-desc">Is replacement required?</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> request_by</span></td><td class="data-type">ENUM('Nike','T1','T2')</td><td class="field-desc">Submitting entity</td></tr>
+                            <tr><td><span class="field-name">created_at</span></td><td class="data-type">TIMESTAMP</td><td class="field-desc">Issue creation date</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-name">IssueContacts</span>
+                        <span class="table-desc">Issue intake contact information</span>
+                    </div>
+                    <table>
+                        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="field-name"><span class="badge pk">PK</span> contact_id</span></td><td class="data-type">INT AUTO_INCREMENT</td><td class="field-desc">Unique contact ID</td></tr>
+                            <tr><td><span class="field-name"><span class="badge fk">FK</span><span class="badge req">*</span> issue_id</span></td><td class="data-type">INT</td><td class="field-desc">Related issue<div class="fk-ref">→ Issues.issue_id</div></td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> contact_name</span></td><td class="data-type">VARCHAR(100)</td><td class="field-desc">Contact person name</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> contact_email</span></td><td class="data-type">VARCHAR(100)</td><td class="field-desc">Contact email address</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> intake_function</span></td><td class="data-type">VARCHAR(50)</td><td class="field-desc">DC, Dimension, Equipment Manager, Merch, etc.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-name">IssueSeasons</span>
+                        <span class="table-desc">Seasons impacted by issue (multi-select)</span>
+                    </div>
+                    <table>
+                        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="field-name"><span class="badge pk">PK</span> issue_season_id</span></td><td class="data-type">INT AUTO_INCREMENT</td><td class="field-desc">Unique record ID</td></tr>
+                            <tr><td><span class="field-name"><span class="badge fk">FK</span><span class="badge req">*</span> issue_id</span></td><td class="data-type">INT</td><td class="field-desc">Related issue<div class="fk-ref">→ Issues.issue_id</div></td></tr>
+                            <tr><td><span class="field-name"><span class="badge fk">FK</span><span class="badge req">*</span> season_id</span></td><td class="data-type">INT</td><td class="field-desc">Impacted season<div class="fk-ref">→ Seasons.season_id</div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-name">IssueAttachments</span>
+                        <span class="table-desc">Files attached to issues</span>
+                    </div>
+                    <table>
+                        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="field-name"><span class="badge pk">PK</span> attachment_id</span></td><td class="data-type">INT AUTO_INCREMENT</td><td class="field-desc">Unique attachment ID</td></tr>
+                            <tr><td><span class="field-name"><span class="badge fk">FK</span><span class="badge req">*</span> issue_id</span></td><td class="data-type">INT</td><td class="field-desc">Parent issue<div class="fk-ref">→ Issues.issue_id</div></td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> file_name</span></td><td class="data-type">VARCHAR(255)</td><td class="field-desc">Original filename</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> file_path</span></td><td class="data-type">VARCHAR(500)</td><td class="field-desc">Storage path/URL</td></tr>
+                            <tr><td><span class="field-name">file_size_mb</span></td><td class="data-type">DECIMAL(5,2)</td><td class="field-desc">File size (max 30MB)</td></tr>
+                            <tr><td><span class="field-name">uploaded_at</span></td><td class="data-type">TIMESTAMP</td><td class="field-desc">Upload timestamp</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- REFERENCE TABLES -->
+        <section class="section" data-phase="reference">
+            <div class="section-header">
+                <span class="phase-tag reference">Reference</span>
+                <h2>Reference / Lookup Tables</h2>
+            </div>
+            <div class="tables-grid">
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-name">DefectTypes</span>
+                        <span class="table-desc">Standardized defect codes (footwear example shown)</span>
+                    </div>
+                    <table>
+                        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="field-name"><span class="badge pk">PK</span> defect_code</span></td><td class="data-type">VARCHAR(10)</td><td class="field-desc">Defect code (1-24, 3-digit, etc.)</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> defect_name</span></td><td class="data-type">VARCHAR(100)</td><td class="field-desc">Defect description</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> component</span></td><td class="data-type">VARCHAR(50)</td><td class="field-desc">Upper, Midsole, Outsole, Package/Label</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> category</span></td><td class="data-type">ENUM('FW','AP','EQ')</td><td class="field-desc">Footwear, Apparel, Equipment</td></tr>
+                            <tr><td><span class="field-name">severity_default</span></td><td class="data-type">ENUM('CRITICAL','MAJOR','MINOR')</td><td class="field-desc">Default severity level</td></tr>
+                            <tr><td><span class="field-name">region_specific</span></td><td class="data-type">VARCHAR(20)</td><td class="field-desc">Region if applicable (e.g., JAPAN)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-name">Categories</span>
+                        <span class="table-desc">Product categories</span>
+                    </div>
+                    <table>
+                        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="field-name"><span class="badge pk">PK</span> category_id</span></td><td class="data-type">INT AUTO_INCREMENT</td><td class="field-desc">Unique category ID</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> category_code</span></td><td class="data-type">VARCHAR(5)</td><td class="field-desc">FW, AP, EQ</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> category_name</span></td><td class="data-type">VARCHAR(50)</td><td class="field-desc">Footwear, Apparel, Equipment</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-name">IntakeFunctions</span>
+                        <span class="table-desc">Issue intake department options</span>
+                    </div>
+                    <table>
+                        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="field-name"><span class="badge pk">PK</span> function_id</span></td><td class="data-type">INT AUTO_INCREMENT</td><td class="field-desc">Unique function ID</td></tr>
+                            <tr><td><span class="field-name"><span class="badge req">*</span> function_name</span></td><td class="data-type">VARCHAR(50)</td><td class="field-desc">DC, Dimension, Equipment Manager, Marketplace Ops, Merch, MSE</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ERD DIAGRAM -->
+        <section class="erd-section">
+            <h2>Entity Relationship Overview</h2>
+            <div class="erd-diagram">
+                <div class="erd-row">
+                    <div class="erd-entity create"><div class="erd-entity-name">RAMP_Assessments</div></div>
+                </div>
+                <div class="erd-arrow">↓</div>
+                <div class="erd-row">
+                    <div class="erd-entity core"><div class="erd-entity-name">Products</div></div>
+                    <span class="erd-arrow">←→</span>
+                    <div class="erd-entity core"><div class="erd-entity-name">PurchaseOrders</div></div>
+                    <span class="erd-arrow">←→</span>
+                    <div class="erd-entity core"><div class="erd-entity-name">Factories</div></div>
+                </div>
+                <div class="erd-arrow">↓</div>
+                <div class="erd-row">
+                    <div class="erd-entity make"><div class="erd-entity-name">ProductionAudits</div></div>
+                    <span class="erd-arrow">→</span>
+                    <div class="erd-entity make"><div class="erd-entity-name">AuditDefects</div></div>
+                </div>
+                <div class="erd-arrow">↓</div>
+                <div class="erd-row">
+                    <div class="erd-entity move"><div class="erd-entity-name">DC_Audits</div></div>
+                    <span class="erd-arrow">→</span>
+                    <div class="erd-entity move"><div class="erd-entity-name">DC_AuditDefects</div></div>
+                </div>
+                <div class="erd-arrow">↓</div>
+                <div class="erd-row">
+                    <div class="erd-entity marketplace"><div class="erd-entity-name">Issues</div></div>
+                    <span class="erd-arrow">→</span>
+                    <div class="erd-entity marketplace"><div class="erd-entity-name">IssueContacts</div></div>
+                    <span class="erd-arrow">→</span>
+                    <div class="erd-entity marketplace"><div class="erd-entity-name">IssueAttachments</div></div>
+                </div>
+            </div>
+        </section>
+
+        <footer style="margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border); text-align: center; color: var(--text-secondary); font-size: 13px;">
+            <p>Quality Data Schema v1.0 | Generated December 2024</p>
+            <p style="margin-top: 8px;">Covers: RAMP (Create) → Production Audits (Make) → DC Audits (Move) → Issue Management (Marketplace)</p>
+        </footer>
+    </div>
+
+    <script>
+        document.querySelectorAll('.phase-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.phase-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const phase = btn.dataset.phase;
+                document.querySelectorAll('.section').forEach(section => {
+                    if (phase === 'all' || section.dataset.phase === phase) {
+                        section.classList.remove('hidden');
+                    } else {
+                        section.classList.add('hidden');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+
